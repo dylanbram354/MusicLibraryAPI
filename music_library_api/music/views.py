@@ -4,6 +4,7 @@ from .models import Song
 from .serializers import SongSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.renderers import JSONRenderer
 from rest_framework import status
 
 
@@ -48,4 +49,36 @@ class SongDetail(APIView):
         song = self.get_object(pk)
         serializer = SongSerializer(song)
         song.delete()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class LikeSong(APIView):
+
+    def get_object(self, pk):
+        try:
+            return Song.objects.get(id=pk)
+        except Song.DoesNotExist:
+            raise Http404
+
+    def get(self, request, pk):
+        song = self.get_object(pk)
+        song.likes += 1
+        song.save()
+        serializer = SongSerializer(song)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class UnlikeSong(APIView):
+
+    def get_object(self, pk):
+        try:
+            return Song.objects.get(id=pk)
+        except Song.DoesNotExist:
+            raise Http404
+
+    def get(self, request, pk):
+        song = self.get_object(pk)
+        song.likes -= 1
+        song.save()
+        serializer = SongSerializer(song)
         return Response(serializer.data, status=status.HTTP_200_OK)
